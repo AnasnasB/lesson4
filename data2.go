@@ -14,12 +14,14 @@ type Teacher struct {
 	Salary float64 `json:"salary"`
 	Subject string `json:"subject"`
 	Classroom []string `json:"classroom"`
-	Persons struct {
-		Name string `json:"name"`
-		Surname string `json:"surname"`
-		PersonalCode string `json:"personalCode"`
-	} `json:"person"`
+	P Person `json:"person"`
 }
+type Person struct {
+	Name string `json:"name"`
+	Surname string `json:"surname"`
+	PersonalCode string `json:"personalCode"`
+	}
+	
 type DeleteTeacher struct {
 	Data struct {
 		ID string `json:"id"`
@@ -102,9 +104,10 @@ func (action CreateTeacher) Process(list[]GeneralObject)[]GeneralObject{
 	t.Salary = action.T.Salary
 	t.Subject = action.T.Subject
 	t.Classroom = action.T.Classroom
-	t.Persons.Name = action.T.Name
-	t.Surname = action.T.Surname
-	t.PersonalCode = action.T.PersonalCode
+	
+	t.P.Name = action.T.P.Name
+	t.P.Surname = action.T.P.Surname
+	t.P.PersonalCode = action.T.P.PersonalCode
 	list = append(list,t)
 	return list
 }
