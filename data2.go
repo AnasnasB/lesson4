@@ -104,7 +104,6 @@ func (action CreateTeacher) Process(list[]GeneralObject)[]GeneralObject{
 	t.Salary = action.T.Salary
 	t.Subject = action.T.Subject
 	t.Classroom = action.T.Classroom
-	
 	t.P.Name = action.T.P.Name
 	t.P.Surname = action.T.P.Surname
 	t.P.PersonalCode = action.T.P.PersonalCode
