@@ -23,9 +23,7 @@ type Person struct {
 	}
 	
 type DeleteTeacher struct {
-	Data struct {
-		ID string `json:"id"`
-	} `json:"data"`
+	D Data `json:"data"`
 }
 type CreateTeacher struct {
 	T Teacher `json:"data"`
@@ -34,11 +32,11 @@ type UpdateTeacher struct {
 	T Teacher `json:"data"`
 }
 type ReadTeacher struct {
-	Data struct {
-		ID string `json:"id"`
-	} `json:"data"`
+	D Data `json:"data"`
 }
-
+type Data struct {
+		ID string `json:"id"`
+} 
 
 type DefinedAction interface {
 	GetFromJSON([]byte)
@@ -111,14 +109,42 @@ func (action CreateTeacher) Process(list[]GeneralObject)[]GeneralObject{
 	return list
 }
 func (action *UpdateTeacher) Process(list[]GeneralObject)[]GeneralObject{
+	var t Teacher
+	t.ID = action.T.ID
+	t.Salary = action.T.Salary
+	t.Subject = action.T.Subject
+	t.Classroom = action.T.Classroom
+	t.P.Name = action.T.P.Name
+	t.P.Surname = action.T.P.Surname
+	t.P.PersonalCode = action.T.P.PersonalCode
+	for _,u := range list {
+		if u.(Teacher).ID == action.T.ID{
+			u = t
+		}
+	}
 	return list
 }
 func (action *ReadTeacher) Process(list[]GeneralObject)[]GeneralObject{
+	for _,u := range list {
+		if u.(Teacher).ID == action.D.ID{
+			fmt.Print(u.(Teacher))
+		}
+	}
 	return list
 }
 func (action *DeleteTeacher) Process(list[]GeneralObject)[]GeneralObject{
+	for i := 0; i<len(list); i++ {
+		if list[i].(Teacher).ID == action.D.ID{
+			Delete(list, i)
+		}
+	}
 	return list
 }
+
+func Delete(list[]GeneralObject ,s int) ([]GeneralObject){
+	return append(list[:s], list[s+1:]...)
+}
+
 
 func main() {
 	list:= make([]GeneralObject,0)
