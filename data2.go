@@ -3,6 +3,7 @@ package main
 import "fmt"
 import "encoding/json"
 import "io/ioutil"
+import "reflect"
 
 type Action struct {
 	Action string `json:"action"`
@@ -62,9 +63,23 @@ type ReadStudent struct {
 	D Data `json:"data"`
 }
 
+type DeleteStaff struct {
+	D Data `json:"data"`
+}
+type CreateStaff struct {
+	S Staff `json:"data"`
+}
+type UpdateStaff struct {
+	S Staff `json:"data"`
+}
+type ReadStaff struct {
+	D Data `json:"data"`
+}
+
 type Data struct {
 		ID string `json:"id"`
 } 
+
 
 type DefinedAction interface {
 	GetFromJSON([]byte)
@@ -75,6 +90,20 @@ type GeneralObject interface {
 	GetUpdateAction() DefinedAction
 	GetReadAction() DefinedAction
 	GetDeleteAction() DefinedAction
+}
+
+
+func (s Staff) GetCreateAction() DefinedAction {
+	return &CreateStaff{}
+}
+func (s Staff) GetUpdateAction() DefinedAction {
+	return &UpdateStaff{}
+}
+func (s Staff) GetReadAction() DefinedAction {
+	return &ReadStaff{}
+}
+func (s Staff) GetDeleteAction() DefinedAction {
+	return &DeleteStaff{}
 }
 
 
@@ -135,6 +164,37 @@ func (action *DeleteStudent) GetFromJSON (rawData []byte) {
 }
 
 
+func (action *CreateStaff) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+func (action *UpdateStaff) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func (action *ReadStaff) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+func (action *DeleteStaff) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+
 func (action *CreateTeacher) GetFromJSON (rawData []byte) {
 	err := json.Unmarshal(rawData, action)
 	if err != nil {
@@ -166,8 +226,62 @@ func (action *DeleteTeacher) GetFromJSON (rawData []byte) {
 }
 
 ///
+func (action *CreateStaff) Process(list[]GeneralObject)[]GeneralObject{
+	var s Staff
+	s.ID = action.S.ID
+	s.Phone = action.S.Phone
+	s.Classroom = action.S.Classroom
+	s.P.Name = action.S.P.Name
+	s.P.Surname = action.S.P.Surname
+	s.P.PersonalCode = action.S.P.PersonalCode
+	list = append(list,s)
+	return list
+}
 
-func (action CreateStudent) Process(list[]GeneralObject)[]GeneralObject{
+func (action *UpdateStaff) Process(list[]GeneralObject)[]GeneralObject{
+	var s Staff
+	s.ID = action.S.ID
+	s.Phone = action.S.Phone
+	s.Classroom = action.S.Classroom
+	s.P.Name = action.S.P.Name
+	s.P.Surname = action.S.P.Surname
+	s.P.PersonalCode = action.S.P.PersonalCode
+	for i := 0; i<len(list); i++ {
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(s){
+			if list[i].(Staff).ID == action.S.ID{
+				list[i] = s
+			}
+		}
+	}
+	return list
+}
+
+func (action *ReadStaff) Process(list[]GeneralObject)[]GeneralObject{
+	var s Staff
+	for i := 0; i<len(list); i++ {
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(s){
+			if list[i].(Staff).ID == action.D.ID{
+				fmt.Print(list[i].(Staff))
+			}
+		}
+	}
+	return list
+}
+
+func (action *DeleteStaff) Process(list[]GeneralObject)[]GeneralObject{
+	var s Staff
+	for i := 0; i<len(list); i++ {
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(s){
+			if list[i].(Staff).ID == action.D.ID{
+				Delete(list, i)
+			}
+		}
+	}
+	return list
+}
+
+
+func (action *CreateStudent) Process(list[]GeneralObject)[]GeneralObject{
 	var s Student 
 	s.ID = action.S.ID
 	s.Class = action.S.Class
@@ -181,30 +295,38 @@ func (action *UpdateStudent) Process(list[]GeneralObject)[]GeneralObject{
 	var s Student 
 	s.ID = action.S.ID
 	s.Class = action.S.Class
-	s.P.Name = action.S.P.Name
+	s.P.Name = action.S.P.Name 
 	s.P.Surname = action.S.P.Surname
 	s.P.PersonalCode = action.S.P.PersonalCode
 	for i := 0; i<len(list); i++ {
-		if list[i].(Student).ID == action.S.ID{
-			list[i] = s
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(s){
+			if list[i].(Student).ID == action.S.ID{
+				list[i] = s
+			}
 		}
 	}
 	return list
 }
 
 func (action *ReadStudent) Process(list[]GeneralObject)[]GeneralObject{
-	for _,u := range list {
-		if u.(Student).ID == action.D.ID{
-			fmt.Print(u.(Student))
+	var s Student
+	for i := 0; i<len(list); i++ {
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(s){
+			if list[i].(Student).ID == action.D.ID{
+				fmt.Print(list[i].(Student))
+			}
 		}
 	}
 	return list
 }
 
 func (action *DeleteStudent) Process(list[]GeneralObject)[]GeneralObject{
+	var s Student
 	for i := 0; i<len(list); i++ {
-		if list[i].(Student).ID == action.D.ID{
-			Delete(list, i)
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(s){
+			if list[i].(Student).ID == action.D.ID{
+				Delete(list, i)
+			}
 		}
 	}
 	return list
@@ -232,24 +354,32 @@ func (action *UpdateTeacher) Process(list[]GeneralObject)[]GeneralObject{
 	t.P.Surname = action.T.P.Surname
 	t.P.PersonalCode = action.T.P.PersonalCode
 	for i := 0; i<len(list); i++ {
-		if list[i].(Teacher).ID == action.T.ID{
-			list[i] = t
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(t){
+			if list[i].(Teacher).ID == action.T.ID{
+				list[i] = t
+			}
 		}
 	}
 	return list
 }
 func (action *ReadTeacher) Process(list[]GeneralObject)[]GeneralObject{
-	for _,u := range list {
-		if u.(Teacher).ID == action.D.ID{
-			fmt.Print(u.(Teacher))
+	var t Teacher 
+	for i := 0; i<len(list); i++  {
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(t){
+			if list[i].(Teacher).ID == action.D.ID{
+				fmt.Print(list[i].(Teacher))
+			}
 		}
 	}
 	return list
 }
 func (action *DeleteTeacher) Process(list[]GeneralObject)[]GeneralObject{
+	var t Teacher 
 	for i := 0; i<len(list); i++ {
-		if list[i].(Teacher).ID == action.D.ID{
-			Delete(list, i)
+		if reflect.TypeOf(list[i]) == reflect.TypeOf(t){
+			if list[i].(Teacher).ID == action.D.ID{
+				Delete(list, i)
+			}
 		}
 	}
 	return list
@@ -280,6 +410,8 @@ func main() {
 		obj = &Teacher{}
 	case "Student":
 		obj = &Student{}
+	case "Staff":
+		obj = &Staff{}
 	}
 	var toDo DefinedAction
 	switch act.Action {
