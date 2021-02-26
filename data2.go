@@ -16,6 +16,20 @@ type Teacher struct {
 	Classroom []string `json:"classroom"`
 	P Person `json:"person"`
 }
+
+type Student struct{
+	ID string  `json:"id"`
+	Class string `json:"class"`
+	P Person `json:"person"`
+}
+
+type Staff struct{
+	ID string  `json:"id"`
+	Phone string `json:"phonenumber"`
+	Classroom string `json:"classroom"`
+	P Person `json:"person"`
+}
+
 type Person struct {
 	Name string `json:"name"`
 	Surname string `json:"surname"`
@@ -34,6 +48,20 @@ type UpdateTeacher struct {
 type ReadTeacher struct {
 	D Data `json:"data"`
 }
+
+type DeleteStudent struct {
+	D Data `json:"data"`
+}
+type CreateStudent struct {
+	S Student `json:"data"`
+}
+type UpdateStudent struct {
+	S Student `json:"data"`
+}
+type ReadStudent struct {
+	D Data `json:"data"`
+}
+
 type Data struct {
 		ID string `json:"id"`
 } 
@@ -50,6 +78,19 @@ type GeneralObject interface {
 }
 
 
+func (s Student) GetCreateAction() DefinedAction {
+	return &CreateStudent{}
+}
+func (s Student) GetUpdateAction() DefinedAction {
+	return &UpdateStudent{}
+}
+func (s Student) GetReadAction() DefinedAction {
+	return &ReadStudent{}
+}
+func (s Student) GetDeleteAction() DefinedAction {
+	return &DeleteStudent{}
+}
+
 func (t Teacher) GetCreateAction() DefinedAction {
 	return &CreateTeacher{}
 }
@@ -63,6 +104,35 @@ func (t Teacher) GetDeleteAction() DefinedAction {
 	return &DeleteTeacher{}
 }
 
+func (action *CreateStudent) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+func (action *UpdateStudent) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func (action *ReadStudent) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+func (action *DeleteStudent) GetFromJSON (rawData []byte) {
+	err := json.Unmarshal(rawData, action)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
 
 
 func (action *CreateTeacher) GetFromJSON (rawData []byte) {
@@ -95,6 +165,50 @@ func (action *DeleteTeacher) GetFromJSON (rawData []byte) {
 	}
 }
 
+///
+
+func (action CreateStudent) Process(list[]GeneralObject)[]GeneralObject{
+	var s Student 
+	s.ID = action.S.ID
+	s.Class = action.S.Class
+	s.P.Name = action.S.P.Name
+	s.P.Surname = action.S.P.Surname
+	s.P.PersonalCode = action.S.P.PersonalCode
+	list = append(list,s)
+	return list
+}
+func (action *UpdateStudent) Process(list[]GeneralObject)[]GeneralObject{
+	var s Student 
+	s.ID = action.S.ID
+	s.Class = action.S.Class
+	s.P.Name = action.S.P.Name
+	s.P.Surname = action.S.P.Surname
+	s.P.PersonalCode = action.S.P.PersonalCode
+	for i := 0; i<len(list); i++ {
+		if list[i].(Student).ID == action.S.ID{
+			list[i] = s
+		}
+	}
+	return list
+}
+
+func (action *ReadStudent) Process(list[]GeneralObject)[]GeneralObject{
+	for _,u := range list {
+		if u.(Student).ID == action.D.ID{
+			fmt.Print(u.(Student))
+		}
+	}
+	return list
+}
+
+func (action *DeleteStudent) Process(list[]GeneralObject)[]GeneralObject{
+	for i := 0; i<len(list); i++ {
+		if list[i].(Student).ID == action.D.ID{
+			Delete(list, i)
+		}
+	}
+	return list
+}
 
 func (action CreateTeacher) Process(list[]GeneralObject)[]GeneralObject{
 	var t Teacher 
@@ -117,9 +231,9 @@ func (action *UpdateTeacher) Process(list[]GeneralObject)[]GeneralObject{
 	t.P.Name = action.T.P.Name
 	t.P.Surname = action.T.P.Surname
 	t.P.PersonalCode = action.T.P.PersonalCode
-	for _,u := range list {
-		if u.(Teacher).ID == action.T.ID{
-			u = t
+	for i := 0; i<len(list); i++ {
+		if list[i].(Teacher).ID == action.T.ID{
+			list[i] = t
 		}
 	}
 	return list
@@ -164,6 +278,8 @@ func main() {
 	switch act.ObjName {
 	case "Teacher":
 		obj = &Teacher{}
+	case "Student":
+		obj = &Student{}
 	}
 	var toDo DefinedAction
 	switch act.Action {
