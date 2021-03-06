@@ -6,7 +6,7 @@ import "io/ioutil"
 import "reflect"
 
 type Action struct {
-	Action string `json:"action"`
+	A string `json:"action"`
 	ObjName string `json:"object"`
 }
 
@@ -225,7 +225,6 @@ func (action *DeleteTeacher) GetFromJSON (rawData []byte) {
 	}
 }
 
-///
 func (action *CreateStaff) Process(list[]GeneralObject)[]GeneralObject{
 	var s Staff
 	s.ID = action.S.ID
@@ -235,6 +234,7 @@ func (action *CreateStaff) Process(list[]GeneralObject)[]GeneralObject{
 	s.P.Surname = action.S.P.Surname
 	s.P.PersonalCode = action.S.P.PersonalCode
 	list = append(list,s)
+	fmt.Print(s)
 	return list
 }
 
@@ -392,39 +392,43 @@ func Delete(list[]GeneralObject ,s int) ([]GeneralObject){
 
 func main() {
 	list:= make([]GeneralObject,0)
-	text, err := ioutil.ReadFile("untitled.json")
+	text, err := ioutil.ReadFile("untitled2.json")
 	if err != nil {
 		fmt.Println("Error",err)
 		return
 	}
-	
-	var act Action
-	err = json.Unmarshal(text, &act)
+	inp := make (map[string]interface{})
+	err = json.Unmarshal(text, &inp)
 	if err != nil {
-		fmt.Println("Error  ",err)
+		fmt.Println("Error---",err)
 		return
 	}
+	var act Action
+	act.A = string(inp["action"].(string))
+	act.ObjName = string(inp["object"].(string))
 	var obj GeneralObject
 	switch act.ObjName {
-	case "Teacher":
-		obj = &Teacher{}
-	case "Student":
-		obj = &Student{}
-	case "Staff":
-		obj = &Staff{}
+		case "Teacher":
+			obj = &Teacher{}
+		case "Student":
+			obj = &Student{}
+		case "Staff":
+			obj = &Staff{}
 	}
 	var toDo DefinedAction
-	switch act.Action {
-	case "create":
-		toDo = obj.GetCreateAction()
-	case "update":
-		toDo = obj.GetUpdateAction()
-	case "read":
-		toDo = obj.GetReadAction()
+	switch act.A { 
+		case "create":
+			toDo = obj.GetCreateAction()
+		case "update":
+			toDo = obj.GetUpdateAction()
+		case "read":
+			toDo = obj.GetReadAction()
 	}
 	
 	toDo.GetFromJSON(text)
 	
-	toDo.Process(list)
-	fmt.Print(toDo)
+	list = toDo.Process(list)
+	
+	fmt.Println(list)
+	
 }
